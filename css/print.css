@@ -1,0 +1,13 @@
+.print {visibility:visible; top:0;} 
+.hide {visibility:hidden; }
+
+@media print {
+	@page { margin: 0; }
+	section { margin: 0; top:0;}
+	h1 {display:none; top:0;}
+	body {font-family:Arial;font: fit-to-print; padding:0; margin:0; font-size:8px; top:0;}
+	table {page-break-after:none; width:100%; top:0;}
+	div {width:100%; height:auto; margin:5px auto; background:white;}
+	header, nav, aside, ul, footer, input {display:none !important; visibility: hidden !important; margin:0; padding:0; clear:both;}
+}
+
