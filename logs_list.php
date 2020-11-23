@@ -3,14 +3,16 @@
 	include 'core/init.php' ; 
 	include 'includes/overall/header.php' ; 
 	include 'includes/logged_in.php' ;
+	include 'core/database/connect.php' ;
 	
 		
 	if(isset($_GET['page'])) {
 		$current_page = $_GET['page'];
-		$current_page = mysql_real_escape_string($current_page);
+		$current_page = mysqli_real_escape_string($mysqli, $current_page);
 	} else {
 		$current_page = 1;
 		header('Location: logs_list.php?page=1');
+		exit();
 	}
 		
 	if (isset($_POST['refresh'])) {
@@ -178,7 +180,8 @@
 <?php	
 					include 'core/database/connect.php' ;
 					$query = $mysqli->query("SELECT log_id, log_employee_id_no, log_position_code, log_period_code, log_date, log_in, log_out, log_client_code, log_regular, log_late, log_undertime, log_a, log_b, log_c, log_d, log_e, log_f, log_g, log_h, log_description, log_check, log_check FROM logs WHERE log_employee_id_no = $employee_id_no ORDER BY log_date DESC LIMIT $limit ,$per_page");
-					while($rows = $query->fetch_assoc()) {
+					//while($rows = $query->fetch_assoc()) {
+					while($rows = mysqli_fetch_array($query)) {
 						$log_id = $rows['log_id'];
 						$log_employee_id_no =$rows['log_employee_id_no'];
 						$log_position_code = $rows['log_position_code'];
