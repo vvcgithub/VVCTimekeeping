@@ -2,11 +2,12 @@
 	include 'core/init.php' ; 
 	include 'includes/overall/header.php' ; 
 	include 'includes/logged_in.php' ;
+	include 'core/database/connect.php' ;
 	
 		
 	if(isset($_GET['page'])) {
 		$current_page = $_GET['page'];
-		$current_page = mysql_real_escape_string($current_page);
+		$current_page = mysqli_real_escape_string($mysqli, $current_page);
 	} else {
 		$current_page = 1;
 		header('Location: loa_list.php?page=1');
@@ -98,7 +99,8 @@
 <?php	
 				include 'core/database/connect.php' ;
 				$query = $mysqli->query("SELECT loa_id, loa_period_code, loa_employee_id_no, loa_employee_id_no, loa_sl, loa_vl, loa_lwop, loa_mpaternity, loa_check FROM loa WHERE loa_employee_id_no = $employee_id_no ORDER BY loa_id DESC LIMIT $limit ,$per_page");
-				while($rows = $query->fetch_assoc()) {
+				//while($rows = $query->fetch_assoc()) {
+				while($rows = mysqli_fetch_assoc($query)) {
 					$loa_id = $rows['loa_id'];
 					$loa_period_code = $rows['loa_period_code'];
 					$loa_employee_id_no =$rows['loa_employee_id_no'];
