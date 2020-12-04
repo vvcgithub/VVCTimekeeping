@@ -52,8 +52,19 @@
 		
 		if (empty($errors_import_biometrics)) {
 			include 'core/database/connect.php' ;
-			$mysqli->query("LOAD DATA INFILE '" . $file_import_biometrics . "' IGNORE INTO TABLE biometrics FIELDS TERMINATED BY ',' IGNORE 1 LINES 
-			(@biometrics_id, @biometrics_date) SET biometrics_id = concat(STR_TO_DATE(@biometrics_date,'%c/%e/%Y %H:%i'), '-', @biometrics_id), biometrics_employee_id_no = @biometrics_id, biometrics_date = STR_TO_DATE(@biometrics_date,'%c/%e/%Y'), biometrics_time = TIME(STR_TO_DATE(@biometrics_date,'%c/%e/%Y %H:%i'))"); // format for military time '%h:%i %p'
+			
+			if (($handle = fopen($file_import_biometrics, "r")) !== FALSE){
+			fgets($handle);
+			while(($row = fgetcsv($handle, 0, ',')) !== FALSE){
+				$mysqli->query('INSERT INTO `biometrics`
+								SET
+								`biometrics_id` = concat(STR_TO_DATE("'.$row[1].'", "%c/%e/%Y %H:%i"), "-", "'.$row[0].'")
+								, `biometrics_employee_id_no` = "'.$row[0].'"
+								, `biometrics_date` = STR_TO_DATE("'.$row[1].'","%c/%e/%Y")
+								, `biometrics_time` = TIME(STR_TO_DATE("'.$row[1].'","%c/%e/%Y %H:%i"))');
+				}
+				fclose($handle);
+			}
 			include 'core/database/close.php' ;
 			header('Location: biometrics_list.php');
 			exit();
@@ -61,9 +72,12 @@
 	}
 	
 	if (isset($_POST['import_logs_employees'])) {
-		$employee_id_no_logs_employees = check_input($_POST['employee_id_no']);
-		$temp_import_logs_employees = $_FILES['upfile_import_logs_employees']['tmp_name'];
+	    
+		$employee_id_no_logs_employees = check_input($_POST['employee_id_no']); //To Check the employee id #
+		$temp_import_logs_employees = $_FILES['upfile_import_logs_employees']['tmp_name'];// Target_file
 		$file_import_logs_employees = check_input_file($temp_import_logs_employees);
+		
+		
 		
 		if (empty($employee_id_no_logs_employees) === true) {
 			$errors_import_logs_employees[] = "Employee is required!";
@@ -72,14 +86,40 @@
 		if (empty($file_import_logs_employees) === true) {
 			$errors_import_logs_employees[] = "CSV file is required!";
 		}
-		
-		
+
 		if (empty($errors_import_logs_employees)) {
 			include 'core/database/connect.php' ;
-			$mysqli->query("LOAD DATA INFILE '" . $file_import_logs_employees . "' REPLACE INTO TABLE logs FIELDS TERMINATED BY ',' IGNORE 1 LINES 
-		(@log_position_code, @log_period_code, @log_date, @log_in, @log_out, @log_client_code, @log_regular, @log_late, @log_undertime, @log_a, @log_b, @log_c, @log_d, @log_e, @log_f, @log_g, @log_h, @log_description) SET log_employee_id_no = $employee_id_no_logs_employees, log_position_code = @log_position_code, log_period_code = @log_period_code, log_date = STR_TO_DATE(NULLIF(@log_date,''),'%c/%e/%Y'), log_in = TIME(STR_TO_DATE(NULLIF(@log_in,''),'%H:%i:%s')), log_out = TIME(STR_TO_DATE(NULLIF(@log_out,''),'%H:%i:%s')), log_client_code = NULLIF(@log_client_code,''), log_regular = NULLIF(@log_regular,''), log_late = NULLIF(@log_late,''), log_undertime = NULLIF(@log_undertime,''), log_a = NULLIF(@log_a,''), log_b = NULLIF(@log_b,''), log_c = NULLIF(@log_c,''), log_d = NULLIF(@log_d,''), log_e = NULLIF(@log_e,''), log_f = NULLIF(@log_f,''), log_g = NULLIF(@log_g,''), log_e = NULLIF(@log_e,''), log_h = NULLIF(@log_h,''), log_description = NULLIF(@log_description,'')"); // format for military time '%h:%i %p'
+		    if (($handle = fopen($file_import_logs_employees, "r")) !== FALSE){
+		        fgets($handle);
+		        while(($row = fgetcsv($handle, 1000, ',')) !== FALSE){
+		            $mysqli->query('INSERT IGNORE INTO `logs` 
+		                            SET 
+		                            `log_employee_id_no` = "'.$employee_id_no_logs_employees.'"
+		                            , `log_position_code` = "'.$row[0].'"
+		                            , `log_period_code` = "'.$row[1].'"
+		                            , `log_date` = STR_TO_DATE(NULLIF("'.$row[2].'",""), "%c/%e/%Y")
+		                            , `log_in` = TIME(STR_TO_DATE(NULLIF("'.$row[3].'", ""), "%H:%i:%s"))
+		                            , `log_out` = TIME(STR_TO_DATE(NULLIF("'.$row[4].'", ""), "%H:%i:%s"))
+		                            , `log_client_code` = NULLIF("'.$row[5].'", "")
+		                            , `log_regular` = NULLIF("'.$row[6].'", "")
+		                            , `log_late` = NULLIF("'.$row[7].'", "")
+		                            , `log_undertime` = NULLIF("'.$row[8].'", "")
+		                            , `log_a` = NULLIF("'.$row[9].'", "")
+		                            , `log_b` = NULLIF("'.$row[10].'", "")
+		                            , `log_c` = NULLIF("'.$row[11].'", "")
+		                            , `log_d` = NULLIF("'.$row[12].'", "")
+		                            , `log_e` = NULLIF("'.$row[13].'", "")
+		                            , `log_f` = NULLIF("'.$row[14].'", "")
+		                            , `log_g` = NULLIF("'.$row[15].'", "")
+		                            , `log_h` = NULLIF("'.$row[16].'", "")
+		                            , `log_i` = NULLIF("'.$row[17].'", "")
+		                            , `log_description` = NULLIF("'.$row[18].'", "")');
+		        }
+		        fclose($handle);
+		    }
 			include 'core/database/close.php' ;
-			header("Location: tools.php#");
+			header("Location: logs_list.php#");
+			
 			exit();
 		}
 	}
@@ -126,7 +166,7 @@
 	if (logged_in() === true) {
 		if ($employee_data['employee_account_type'] === 'Administrator') {
 ?>
-			<!----<li><a href="#logs_empty" class="link_new padding10 span2" style="text-decoration:none;">Empty logs</a></li>--->
+			<li><a href="#logs_empty" class="link_new padding10 span2" style="text-decoration:none;">Empty logs</a></li>
 <?php
 		}
 	}
@@ -197,6 +237,7 @@
 							include 'core/database/connect.php' ;
 							$query = $mysqli->query("SELECT * FROM employees ORDER BY employee_last_name ASC");
 							while($rows = $query->fetch_assoc()) {
+							
 								$id_no = $rows['employee_id_no'];
 ?>
 								<option class="span_auto" value="<?php echo $id_no; ?>" <?php echo (isset($employee_id_no) && $employee_id_no === $id_no) ? 'selected' : '' ; ?>><?php echo complete_name_from_id_no($id_no); ?></option>
@@ -248,11 +289,11 @@
 	}
 ?>
 <?php
-	// if (logged_in() === true) {
-		// if ($employee_data['employee_account_type'] === 'Administrator') {
+	 if (logged_in() === true) {
+		 if ($employee_data['employee_account_type'] === 'Administrator') {
 ?>
 	
-			<!---<div id="logs_empty" class="modalDialog">
+			<div id="logs_empty" class="modalDialog">
 				<div>
 					<a href="#close" title="Close" class="close">X</a>
 					<h2>Empty logs</h2>
@@ -261,10 +302,10 @@
 						<input type="submit" name="empty" value="Empty" />
 					</form>
 				</div>
-			</div> --->
+			</div>
 <?php
-		// }
-	// }
+		 }
+	 }
 ?>
 <?php
 	include 'includes/overall/footer.php' ; 
